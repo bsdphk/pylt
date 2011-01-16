@@ -1,3 +1,26 @@
+#!/usr/local/bin/python
+
+import sys
+import time
+import prologix_usb
+
+class hp8657a(prologix_usb.gpib_dev):
+
+	def __init__(self, name = "gpib0", adr = 6):
+		prologix_usb.gpib_dev.__init__(self, name, adr)
+
+	def set_freq(self, hz):
+		self.wr("FR %.0fHZ" % hz)
+
+	def set_dbm(self, dbm):
+		self.wr("AP %.1fDM" % dbm)
+
+
+if __name__ == "__main__":
+	d=hp8657a()
+	print("Device has no way of talking back")
+	d.set_freq(10e6)
+	d.set_dbm(-70.0)
 
 
 doc="""
