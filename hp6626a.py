@@ -125,7 +125,7 @@ class hp6626a(prologix_usb.gpib_dev):
 	# PYLT Standard methods
 	#######################
 
-	def errors(self):
+	def errors(self, f=sys.stderr):
 		i = self.spoll()
 		if i & 0x20:
 			x = int(self.ask("ERR?"))
@@ -133,7 +133,7 @@ class hp6626a(prologix_usb.gpib_dev):
 				y = hp6626a_errors[x]
 			else:
 				y = "UNKNOWN ERROR"
-			print("HP6626A.ERROR: %d = " % x + y)
+			f.write("HP6626A.ERROR: %d = " % x + y + "\n")
 			return True
 		return False
 
