@@ -10,9 +10,9 @@ this instrument.
 As a result, a typical python script for measuring something can look
 almost readable:
 
-	import u2004
+	import u2004a
 
-	d = u2004.u2004()
+	d = u2004a.u2004a()
 
 	# 1MHz, -25 dBm, best resolution
 	d.config(1e6, -25, 4)
@@ -23,13 +23,65 @@ almost readable:
 Currently two hardware connections are supported:  Prologix USB-GPIB
 adapter and direct USBTMC/USB488 connection.
 
-It is possible to use multiple instruments on one GPIB bus controlled
-by the Prologix at the same time.
+
+Why ?
+=====
+
+For those of you who are happy with LabView etc, this will look
+like yet another 1980'ies rerun.   Now that I've said it, you
+don't need to waste email-bandwidth telling anybody that :-)
+
+Yes, I am aware of py-visa and a few other efforts, but I needed
+something that worked and found that they generally spent a lot
+of code offering things I didn't need or even want.
+
+Be aware that this is not even close to a nice and polished release,
+and that you will probably never see one either:  This is a snapshot 
+of what I happened to have on my lab-computer right now, and I will
+update it as time/need/inspiration strikes.
+
+There is a sort of vision behind it which has matured as I went
+along and learned more and more python, and I will try to move
+closer to that as I go.  The best place to spot it is in the
+pylt.py file, where the methods all instruments should support
+are defaulted.
+
+
+Prologix.biz USB-GPIB
+=====================
+
+The one thing you need to know is that you must tell where to
+find your instruments.  
+
+For instance:
+
+        class hp3336c(prologix_usb.gpib_dev):
+                def __init__(self, name = "gpib0", adr = 13):
+
+"gpib0" corresponds to /dev/gpib0 (which is where one of my
+Prologix USB-GPIB adapters show up.)  and 13 is the bus address.
+
+There is a nifty multiplexing facility built in, so you can
+talk to multiple instruments at a Prologix driven bus at the
+same time from the same python script, without having to
+think about it.
+
+
+USBTMC/USB488
+=============
+
+This one caused me no end of pain, what a sucky standard, but
+at least it looks like the Agilent U2004A Power Sensor works
+reliably now.
+
+You will need py-usb 1.0 and some backend for it, I use libusb.
+
 
 Who ?
 =====
 
 Written by Poul-Henning Kamp, <phk@FreeBSD.org>
+
 
 License ?
 =========
