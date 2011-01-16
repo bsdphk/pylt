@@ -1,0 +1,44 @@
+What ?
+======
+This is a set of python classes for communicating with IEEE488/GPIB
+instruments which I use in my private lab.
+
+The base class is "pylt" - PYthon LabTools - which defines the generic
+API that hides the particular details of getting HPIB working for
+this instrument.
+
+As a result, a typical python script for measuring something can look
+almost readable:
+
+	import u2004
+
+	d = u2004.u2004()
+
+	# 1MHz, -25 dBm, best resolution
+	d.config(1e6, -25, 4)
+
+	while True:
+		print(d.measure())
+
+Currently two hardware connections are supported:  Prologix USB-GPIB
+adapter and direct USBTMC/USB488 connection.
+
+It is possible to use multiple instruments on one GPIB bus controlled
+by the Prologix at the same time.
+
+Who ?
+=====
+
+Written by Poul-Henning Kamp, <phk@FreeBSD.org>
+
+License ?
+=========
+
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * <phk@FreeBSD.ORG> wrote this file.  As long as you retain this notice you
+ * can do whatever you want with this stuff. If we meet some day, and you think
+ * this stuff is worth it, you can buy me a beer in return.   Poul-Henning Kamp
+ * ----------------------------------------------------------------------------
+ */
