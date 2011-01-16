@@ -115,7 +115,7 @@ class usbtmc(object):
 		self.debug("BULKOUT " + str(l))
 		self.usbdev.write(2, l, timeout=tmo)
 
-	def usbtmc_bulk_in(self, tmo=None):
+	def usbtmc_bulk_in(self, tmo=None, fail=True):
 		lx = 4096
 		l = self.usbtmc_mkmsg(2, lx)
 		l.append(0)			# xfer attr
@@ -124,13 +124,24 @@ class usbtmc(object):
 		l.append(0)			# rsv
 		self.debug("BULKIN? " + str(l))
 		self.usbdev.write(2, l, timeout = tmo)
-		x = self.usbdev.read(0x81, lx, timeout = tmo)
+		try:
+			x = self.usbdev.read(0x81, lx, timeout = tmo)
+		except Exception as foo:
+			self.debug("BULK IN FAILED " + str( foo) + " " + str( foo.args))
+			self.usbtmc_do_clear()
+			if fail:
+				self.fail("Read stalled")
+			else:
+				return (False, foo.args)
 		l = x[4] | (x[5] << 8) | (x[6] << 16) | (x[7] << 24)
 		s = ""
 		for i in range(0,l):
 			s = s + chr(x[12+i])
 		self.debug("BULKIN " + str(x))
-		return s
+		if fail:
+			return s
+		else:
+			return (True, s)
 
 	def usbtmc_status_decode(self, x):
 		y = list()
@@ -183,8 +194,7 @@ class usbtmc(object):
 		# Clear Feature(Endpoint, HALT)
 		x = self.usbdev.ctrl_transfer(0x02, 1, 0, 2, None, None)
 		assert x == 0 or "CLEAR" == "HALT"
-		print("DO_CLEAR took %f" % (time.time() - t))
-		self.debug("DO_CLEAR end " + str(v))
+		self.debug("DO_CLEAR end (%.3f seconds)" % (time.time() - t) + str(v))
 		return v
 
 	def usbtmc_do_check_pipes(self):
@@ -218,10 +228,11 @@ class usb488(pylt.pylt, usbtmc):
 		self.debug("WR <" + s + ">")
 		self.usbtmc_bulk_out(s, tmo=tmo)
 
-	def rd(self, tmo=None):
-		s = self.usbtmc_bulk_in(tmo=tmo)
-		s = s.strip("\r\n")
-		self.debug("RD <" + s + ">")
+	def rd(self, tmo=None, fail=True):
+		s = self.usbtmc_bulk_in(tmo=tmo, fail=fail)
+		if fail:
+			s = s.strip("\r\n")
+		self.debug("RD <" + str(s) + ">")
 		return s
 
 	def spoll(self):

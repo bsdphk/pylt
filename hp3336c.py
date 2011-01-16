@@ -56,8 +56,9 @@ class hp3336c(prologix_usb.gpib_dev):
 		return float(x[2:-2])
 
 if __name__ == "__main__":
-        d = hp3336c()
-        print(d.id)
+	d = hp3336c()
+	print("Device reponds (%s)" % d.id)
+	print("Freq: %.11e Hz %.1f dBm" % (d.read_freq(), d.read_dbm()))
 
 
 doc="""

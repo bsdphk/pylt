@@ -127,42 +127,42 @@ class prologix_usb(object):
 class gpib_dev(pylt.pylt):
 
 	def __init__(self, name, adr):
-		pylt.pylt.__init__(self)
 		if not name in pusb:
 			x = prologix_usb(name)
 
 		self.pusb = pusb[name]
-		self.adr = adr;
-		self.id = "?"
+		self.debug_fd = self.pusb.debug_fd
+		pylt.pylt.__init__(self)
 
 		self.setting = dict()
 		def_set(self.setting)
 		self.setting["addr"] = adr
 
+
 	def wr(self, str):
 		self.pusb.set(self.setting)
 		self.pusb.wr(str)
 
-	def rd_eoi(self):
+	def rd_eoi(self, tmo=None, fail=True):
 		self.pusb.set(self.setting)
 		x = self.pusb.rd_eoi()
 		if self.setting["autocr"]:
 			x = x.strip("\r\n")
 		return (x)
 
-	def rd_chr(self, chr=10):
+	def rd_chr(self, chr=10, tmo=None, fail=True):
 		self.pusb.set(self.setting)
 		x = self.pusb.rd_chr(chr)
 		if self.setting["autocr"]:
 			x = x.strip("\r\n")
 		return (x)
 
-	def rd_bin(self, cnt=1):
+	def rd_bin(self, cnt=1, tmo=None, fail=True):
 		self.pusb.set(self.setting)
 		x = self.pusb.rd_bin(cnt)
 		return (x)
 
-	def rd(self):
+	def rd(self, tmo=None, fail=True):
 		m = self.setting["rd_mode"]
 		if m == "eoi":
 			return self.rd_eoi()

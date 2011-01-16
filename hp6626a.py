@@ -42,6 +42,7 @@ class hp6626a(prologix_usb.gpib_dev):
 	def __init__(self, name = "gpib1", adr = 5):
 		prologix_usb.gpib_dev.__init__(self, name, adr)
 		self.attr("read_tmo_ms", 300)
+		self.spoll_cmd = 0x10
 		self.wait_cmd(12)
 		x = self.ask("ID?")
 		if x != "HP6626A":
@@ -308,6 +309,10 @@ class hp6626a(prologix_usb.gpib_dev):
 		self.AOK()
 		return a
 
+if __name__ == "__main__":
+	d = hp6626a()
+	print("Device responds: " + d.ask("ID?"))
+	d.report()
 
 doc = """
 Query accumulated status register		ASTS?	1-4	---			Q2

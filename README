@@ -85,7 +85,7 @@ With git installed do:
 	cd /some/where
 	mkdir pylt
 	cd pylt
-	git -clone git://github.com/bsdphk/pylt.git
+	git clone git://github.com/bsdphk/pylt.git
 
 
 Who ?

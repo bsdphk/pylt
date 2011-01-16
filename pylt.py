@@ -7,10 +7,12 @@ import sys
 import time
 
 class PyltError(Exception):
-	def __init__(self, value):
-		self.value = value
+	def __init__(self, id, reason):
+		self.id = id
+		self.reason = reason
+		self.args = (str(id), str(self.reason),)
 	def __str__(self):
-		 return repr(self.value)
+		return str(id) + ":" + str(self.reason)
 
 class pylt(object):
 
@@ -24,7 +26,7 @@ class pylt(object):
 
 	# Raise a Pylt specific exception
 	def fail(self, s):
-		raise PyltError("(" + self.id + ") " + s)
+		raise PyltError(self.id, str(s))
 
 	# Dump debug output
 	def debug(self, s):
@@ -39,7 +41,12 @@ class pylt(object):
 		return False
 
 	# Read a response
-	def rd(self):
+	# if fail is True, raise an exception if we cannot complete the read
+	# if fail is False return a two-element tupple, either:
+	#	( True, <result> )
+	# or
+	#	( False, <diagnostic> )
+	def rd(self, tmo=None, fail=True):
 		sys.stderr.write("PYLT.WARN: [%s].rd() undefined\n" % self.id)
 		return None
 
@@ -48,14 +55,12 @@ class pylt(object):
 		sys.stderr.write("PYLT.WARN: [%s].wr() undefined\n" % self.id)
 
 	# Ask a question
-	# return None on timeout
-	def ask(self, q, tmo = None):
+	# Same meaning of fail argumentas rd()
+	def ask(self, q, tmo = None, fail=True):
 		self.wr(q)
-		if tmo != None and not self.wait_cmd(tmo, False):
-			return None
-		return self.rd()
+		return self.rd(tmo=tmo, fail=fail)
 
-	# Assert no errors
+	# Raise exception if the instrument reports errors
 	def AOK(self):
 		if self.errors():
 			self.fail('Instrument reported errors')
@@ -95,7 +100,7 @@ class pylt(object):
 		return 0
 
 	def wait_spoll(self, bits, dur = 10000.):
-		print("WAITING FOR %02x" % bits)
+		self.debug("WAITING FOR %02x" % bits)
 		assert bits > 0 or "wait_spoll bits" == "must > 0"
 		assert bits < 256 or "wait_spoll bits" == "must be < 256"
 		obits = 256
@@ -105,7 +110,7 @@ class pylt(object):
 		while time.time() < te:
 			x = self.spoll()
 			if x != obits:
-				print("SPOLL CHG %02x -> %02x" % (obits, x))
+				self.debug("SPOLL CHG %02x -> %02x" % (obits, x))
 				obits = x
 			if x & bits:
 				return True

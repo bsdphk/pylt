@@ -6,7 +6,7 @@ import time
 
 class u2004a(usb488.usb488):
 	def __init__(self, serial = None):
-		self.debug_fd = open("_.U2004", "w")
+		self.debug_fd = open("_.u2004a", "w")
 		usb488.usb488.__init__(self,
 		    "Agilent Technologies", "USB POWER SENSOR", serial)
 
@@ -25,17 +25,17 @@ class u2004a(usb488.usb488):
 		self.errors()
 
 		self.wr("ABORT")
-		self.AOK()
 		self.wr("INIT:CONT OFF")
-		self.AOK()
 		self.wr("TRIG:SOURCE HOLD")
 		self.AOK()
 		self.wr("*ESE 255")
 		self.AOK()
-		self.wr("STAT:OPER:MEAS:ENAB 2")
-		self.AOK()
-		self.wr("STAT:OPER:ENAB 16")
-		self.AOK()
+		#self.wr("STAT:OPER:MEAS:ENAB 2")
+		#self.AOK()
+		#self.wr("STAT:OPER:ENAB 16")
+		#self.AOK()
+		self.config(1e6,20,1)
+		self.spoll()
 		self.debug("RESET end")
 
 
@@ -59,26 +59,39 @@ class u2004a(usb488.usb488):
 		self.wr("CONF %g,%d" % (level, resolution))
 		self.AOK()
 
-	def measure(self, dur=70000):
+	def measure(self, dur=70000, fail=True):
+		self.debug("measure() begin")
 		self.AOK()
-		print("SP1 %02x" % self.spoll())
+		self.spoll()
 		t = time.time()
+
 		self.wr("INIT:IMM")
 		self.wr("*OPC")
 		# This delay is important, USB bus hangs without it
-		time.sleep(0.020)
-		#self.wait_data(dur)
-		self.wait_spoll(0x20,70000)
-		print("T %.3f" % (time.time() - t))
+		time.sleep(0.100)
+
+		self.wait_spoll(0x20,dur)
+		self.debug("T %.3f" % (time.time() - t))
+		self.spoll()
+		x = self.ask("FETCH?", tmo=2000, fail=fail)
 		self.ask("*ESR?")
-		print("SP2 %02x" % self.spoll())
-		x = float(self.ask("FETCH?"))
-		self.AOK()
-		return x
+		self.spoll()
+		if fail:
+			self.AOK()
+		self.debug("measure() end %s" % str(x))
+		if not fail and not x[0]:
+			return x
+		elif not fail:
+			return (True, float(x[1]))
+		return float(x)
 
 if __name__ == "__main__":
 	d = u2004a()
-	print(d.id)
-
-
-
+	print("Device reponds: " + d.ask("*IDN?"))
+	print("Doing one measurement (this may take 40 seconds)")
+	x = d.measure(dur=1000, fail=False)
+	if x[0]:
+		print("SUCCESS: %.3f dBm" % x[1])
+	else:
+		print("FAILURE: %s" % str(x[1]))
+		d.errors()
