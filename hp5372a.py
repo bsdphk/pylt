@@ -19,6 +19,7 @@ class hp5372a(prologix_usb.gpib_dev):
 
 	# Take a screen dump
 	def screen_dump(self,fname = "_.hp5372a.pbm"):
+		print(self.id + " Taking a screendump into " + fname)
 		self.wr("INTERFACE;PSOURCE,DISPLAY")
 		self.wr("PRINT")
 		x = ""

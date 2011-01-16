@@ -24,10 +24,20 @@ def pcl_to_pbm(data, ofile="_.hp5372a.pbm"):
 			#print("NUL")
 			i += 1
 			continue
+		if a[i] == 12:
+			break
 		
 
 		# We deal with escape sequences, so insist we have one
-		assert a[i] == 27
+		if a[i] != 27:
+			print(a[i:i+10])
+			break
+		if i + 1 < l and a[i + 1] == 27:
+			i += 1
+			continue
+
+		if a[i + 1] != 42:
+			break
 
 		assert a[i+1] == 42
 		c = a[i+2]
@@ -45,6 +55,12 @@ def pcl_to_pbm(data, ofile="_.hp5372a.pbm"):
 		elif c == 114 and t == 66:
 			# "ESC * r # B"  = End Raster Graphics
 			pass;
+		elif c == 114 and t == 83:
+			# "ESC * r # S"  = Width of Raster Graphics
+			pass;
+		elif c == 116 and t == 82:
+			# "ESC * t # R"  = Set Resolution
+			pass;
 		elif c == 98 and t == 87:
 			# 'ESC * b # W" = Transfer Raster Data
 			p = a[i: i + n]
@@ -54,7 +70,8 @@ def pcl_to_pbm(data, ofile="_.hp5372a.pbm"):
 			if n > w:
 				w = n
 		else:
-			raise Exception("Unknown: ESC * %c %d %c" % (c, n, t))
+			print("Unknown: ESC * %c(%d) %d %c(%d)" % (c, c, n, t, t))
+			break
 			
 	for i in range(0,8):
 		h.append(array.array('B', (0,0)))
@@ -69,3 +86,8 @@ def pcl_to_pbm(data, ofile="_.hp5372a.pbm"):
 			fo.write("%c" % 0x00)
 		fo.write("%c" % 0x00)
 	fo.close()
+
+#f = open("_x")
+#a=f.read()
+#f.close()
+#pcl_to_pbm(a, "_tds540.pbm")
