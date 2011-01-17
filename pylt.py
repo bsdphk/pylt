@@ -106,7 +106,7 @@ class pylt(object):
 		assert bits > 0 or "wait_spoll bits" == "must > 0"
 		assert bits < 256 or "wait_spoll bits" == "must be < 256"
 		obits = 256
-		te = time.time() + dur
+		te = time.time() + dur * 1e-3
 		x = 0
 		dt = 0.001
 		while time.time() < te:
