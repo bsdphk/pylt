@@ -80,7 +80,7 @@ class usbtmc(object):
 		self.usbcfg,self.usbintf = match(self.usbdev)
 		self.usbdev.set_configuration(self.usbcfg.bConfigurationValue)
 		self.usbtmc_tag = 3
-		self.usbdev.default_timeout=50000
+		self.usbdev.default_timeout=10000
 
 	def usbtmc_get_tag(self):
 		a = self.usbtmc_tag
@@ -192,6 +192,7 @@ class usbtmc(object):
 				d += d
 		v = x[0][0] == 1
 		# Clear Feature(Endpoint, HALT)
+		self.usbtmc_do_check_pipes()
 		x = self.usbdev.ctrl_transfer(0x02, 1, 0, 2, None, None)
 		assert x == 0 or "CLEAR" == "HALT"
 		self.debug("DO_CLEAR end (%.3f seconds)" % (time.time() - t) + str(v))
@@ -214,8 +215,8 @@ class usb488(pylt.pylt, usbtmc):
 	def __init__(self, man=None, prod=None, serial=None):
 		pylt.pylt.__init__(self)
 		usbtmc.__init__(self, man, prod, serial)
-		self.usbtmc_do_clear()
 		self.usb488_tag = 2
+		self.device_clear()
 
 	def usb488_get_tag(self):
 		a = self.usb488_tag
@@ -238,13 +239,17 @@ class usb488(pylt.pylt, usbtmc):
 	def spoll(self):
 		t = self.usbtmc_get_tag() & 0x7f
 		self.debug("SPOLL begin (%02x)" % t)
+		self.usbtmc_do_check_pipes()
 		try:
-			x = self.usbdev.ctrl_transfer( 0xa1, 128, t, 0, 3, 10000)
+			x = self.usbdev.ctrl_transfer( 0xa1, 128, t, 0, 3, 1000)
 		except:
-			x = self.usbdev.ctrl_transfer( 0xa1, 128, t, 0, 3, 10000)
-		z = self.usbdev.read(0x83, 2, None, 70000)
+			x = self.usbdev.ctrl_transfer( 0xa1, 128, t, 0, 3, 1000)
+		z = self.usbdev.read(0x83, 2, None, 1000)
 		self.debug("SPOLL " + str(x) + str(z) + " ==> 0x%02x" % z[1])
 		assert x[0] == 1 or "SPOLL" == "STATUS"
 		assert x[1] == t or "SPOLL" == "TAG"
 		assert (z[0]&0x7f) == t or "SPOLL" == "INTR TAG"
 		return z[1]
+
+	def device_clear(self):
+		self.usbtmc_do_clear()

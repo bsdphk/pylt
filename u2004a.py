@@ -10,34 +10,27 @@ class u2004a(usb488.usb488):
 		usb488.usb488.__init__(self,
 		    "Agilent Technologies", "USB POWER SENSOR", serial)
 
-		self.usbdev.default_timeout=70000
+		self.usbdev.default_timeout=7000
 		self.spoll_data = 0x20
-
+		self.reset()
 		x = self.ask("*IDN?").split(',')
 		self.id = x[1]
 		self.AOK()
-		self.reset()
 
 	def reset(self):
 		self.debug("RESET begin")
-		self.wr("*CLS")
+		self.device_clear()
 		self.wr("*RST")
-		self.errors()
-
-		self.wr("ABORT")
-		self.wr("INIT:CONT OFF")
+		assert self.ask("SYST:ERR?") == '+0,"No error"'
+		assert self.ask("INIT:CONT?") == "0"
+		assert self.ask("TRIG:SOURCE?") == "IMM"
 		self.wr("TRIG:SOURCE HOLD")
-		self.AOK()
-		self.wr("*ESE 255")
-		self.AOK()
-		#self.wr("STAT:OPER:MEAS:ENAB 2")
-		#self.AOK()
-		#self.wr("STAT:OPER:ENAB 16")
-		#self.AOK()
+		self.wr("*ESE 1")
+		self.wr("STAT:OPER:MEAS:ENAB 2")
+		self.wr("STAT:OPER:ENAB 16")
 		self.config(1e6,20,1)
 		self.spoll()
 		self.debug("RESET end")
-
 
 	def errors(self, f=sys.stderr):
 		r = False
@@ -88,7 +81,7 @@ class u2004a(usb488.usb488):
 if __name__ == "__main__":
 	d = u2004a()
 	print("Device reponds: " + d.ask("*IDN?"))
-	print("Doing one measurement (this may take 40 seconds)")
+	print("Doing one measurements (this may take 40 seconds)")
 	x = d.measure(dur=1000, fail=False)
 	if x[0]:
 		print("SUCCESS: %.3f dBm" % x[1])
