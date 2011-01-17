@@ -49,13 +49,13 @@ class hp3458a(prologix_usb.gpib_dev):
 	#################
 
 	def mread(self, lo, hi):
-		self.assert_noerror()
+		self.AOK()
 		self.wr("TRIG SGL")
 		self.wr("QFORMAT NUM")
 		l = list()
 		for i in range(lo, hi, 2):
 			l.append(self.ask("MREAD %d" % i))
-		self.assert_noerror()
+		self.AOK()
 		return l
 
 	def acal_dcv(self):
@@ -67,7 +67,7 @@ class hp3458a(prologix_usb.gpib_dev):
 			print(t, x)
 			if x & 16 != 0:
 				break
-		self.assert_noerror()
+		self.AOK()
 
 	def acal_ac(self):
 		print("ACAL DCV (approx 180 seconds)")
@@ -79,6 +79,23 @@ class hp3458a(prologix_usb.gpib_dev):
 			if x & 16 != 0:
 				break
 		self.assert_noerror()
+
+	###############################################################
+	# Read a copy of the Calibration NVRAM and write it to a file.
+	#
+	# Unfortunately writing it back is no where near as simple.
+	#
+	def nvram(self,  fname="_.hp3458.calram.bin"):
+		# The NVRAM containing the calibration data is mapped in the
+		$ high byte only.
+		l=self.mread(0x60000, 0x60000 + 2048 * 2)
+		fo = open(fname, "w")
+		for i in l:
+			j = int(i)
+			if j < 0:
+				j = 65536 + j
+			fo.write("%c" % (j >> 8))
+		fo.close()
 
 if __name__ == "__main__":
         d = hp3458a()
