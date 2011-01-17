@@ -176,7 +176,7 @@ class gpib_dev(pylt.pylt):
 		self.pusb.set(self.setting)
 		return(self.pusb.spoll())
 
-	def trig(self):
+	def trigger(self):
 		self.pusb.set(self.setting)
 		return(self.pusb.trigger())
 
