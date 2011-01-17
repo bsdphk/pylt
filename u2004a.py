@@ -52,7 +52,7 @@ class u2004a(usb488.usb488):
 		self.wr("CONF %g,%d" % (level, resolution))
 		self.AOK()
 
-	def measure(self, dur=70000, fail=True):
+	def measure(self, tmo=70000, fail=True):
 		self.debug("measure() begin")
 		self.AOK()
 		self.spoll()
@@ -63,7 +63,7 @@ class u2004a(usb488.usb488):
 		# This delay is important, USB bus hangs without it
 		time.sleep(0.100)
 
-		self.wait_spoll(0x20,dur)
+		self.wait_spoll(0x20,tmo)
 		self.debug("T %.3f" % (time.time() - t))
 		self.spoll()
 		x = self.ask("FETCH?", tmo=2000, fail=fail)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 	d = u2004a()
 	print("Device reponds: " + d.ask("*IDN?"))
 	print("Doing one measurements (this may take 40 seconds)")
-	x = d.measure(dur=1000, fail=False)
+	x = d.measure(tmo=1000, fail=False)
 	if x[0]:
 		print("SUCCESS: %.3f dBm" % x[1])
 	else:
