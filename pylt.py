@@ -3,6 +3,9 @@
 # This is the PYLT baseclas which defines the fall-back methods
 #
 # This file also serves to document the canonical method functions
+# and other programming conventions
+#
+# Timeout arguments are always named "tmo" and have units of milliseconds.
 #
 
 import sys
@@ -89,9 +92,9 @@ class pylt(object):
 
 	###############################################################
 	# Trigger intrument into action
-	def trigg(self):
+	def trigger(self):
 		sys.stderr.write(
-		    "PYLT.WARN: [%s].trig() undefined\n" % self.id)
+		    "PYLT.WARN: [%s].trigger() undefined\n" % self.id)
 
 	def spoll(self):
 		sys.stderr.write(
@@ -101,12 +104,12 @@ class pylt(object):
 	###############################################################
 	# Wait for a bits to turn on in spoll()
 	#
-	def wait_spoll(self, bits, dur = 10000.):
+	def wait_spoll(self, bits, tmo = 10000.):
 		self.debug("WAITING FOR %02x" % bits)
 		assert bits > 0 or "wait_spoll bits" == "must > 0"
 		assert bits < 256 or "wait_spoll bits" == "must be < 256"
 		obits = 256
-		te = time.time() + dur * 1e-3
+		te = time.time() + tmo * 1e-3
 		x = 0
 		dt = 0.001
 		while time.time() < te:
