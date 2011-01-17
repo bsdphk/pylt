@@ -126,8 +126,8 @@ class pylt(object):
 	# Wait until instrument is ready.
 	# if fail is set, fail when timeout expires, else return False
 	#
-	def wait_cmd(self, dur = 10., fail=True):
-		if self.wait_spoll(self.spoll_cmd, dur):
+	def wait_cmd(self, tmo = 10000, fail=True):
+		if self.wait_spoll(self.spoll_cmd, tmo):
 			return True
 		if not fail:
 			return False
@@ -137,8 +137,8 @@ class pylt(object):
 	# Wait until instrument has data ready, return false if not
 	# if fail is set, fail when timeout expires, else return False
 	#
-	def wait_data(self, dur = 10., fail=True):
-		if self.wait_spoll(self.spoll_data, dur):
+	def wait_data(self, tmo = 10000, fail=True):
+		if self.wait_spoll(self.spoll_data, tmo):
 			return True
 		if not fail:
 			return False
