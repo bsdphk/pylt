@@ -39,7 +39,7 @@ class hp3458a(prologix_usb.gpib_dev):
 
 	def reset(self):
 		self.wr("PRESET NORM")
-		self.wait()
+		self.wait_cmd(tmo=20000)
 		self.wr("TRIG HOLD")
 		self.wr("INBUF ON")
 		self.AOK()
@@ -48,53 +48,100 @@ class hp3458a(prologix_usb.gpib_dev):
 	# HP3458A methods
 	#################
 
-	def mread(self, lo, hi):
-		self.AOK()
-		self.wr("TRIG SGL")
-		self.wr("QFORMAT NUM")
-		l = list()
-		for i in range(lo, hi, 2):
-			l.append(self.ask("MREAD %d" % i))
-		self.AOK()
-		return l
 
 	def acal_dcv(self):
-		print("ACAL DCV (approx 160 seconds)")
+		print("ACAL DCV expected duration: ~165 seconds)")
+		t = time.time()
 		self.wr("ACAL DCV")
-		for t in range(0,180, 10):
-			time.sleep(10)
-			x = self.spoll()
-			print(t, x)
-			if x & 16 != 0:
-				break
+		self.wait_cmd(tmo=200000)
 		self.AOK()
+		print("ACAL DCV actual duration: %.1f" % (time.time() - t))
 
 	def acal_ac(self):
-		print("ACAL DCV (approx 180 seconds)")
+		print("ACAL AC (expected duration: ~145 seconds)")
+		t = time.time()
 		self.wr("ACAL AC")
-		for t in range(0,180, 10):
-			time.sleep(10)
-			x = self.spoll()
-			print(t, x)
-			if x & 16 != 0:
-				break
-		self.assert_noerror()
+		self.wait_cmd(tmo=200000)
+		self.AOK()
+		print("ACAL DCV actual duration: %.1f" % (time.time() - t))
+
+	def acal_ohms(self):
+		print("ACAL OHMS (expected duration: ~670 seconds)")
+		t = time.time()
+		self.wr("ACAL OHMS")
+		self.wait_cmd(tmo=800000)
+		self.AOK()
+		print("ACAL OHMS actual duration: %.1f" % (time.time() - t))
+
+	def acal_all(self):
+		print("ACAL ALL (expected duration: ~1000 seconds)")
+		t = time.time()
+		self.wr("ACAL ALL")
+		self.wait_cmd(tmo=1000000)
+		self.AOK()
+		print("ACAL ALL actual duration: %.1f" % (time.time() - t))
+
+	####################
+	# HP3458A deep magic
+	####################
+
+	###############################################################
+	# Read a memory range using the undocumented MREAD command
+	# Return as a list of python 'int' [0...65535]
+	#
+	# ROMs are located at:		high/low byte
+	# 	0x000000-0x01ffff	U110 U111
+	# 	0x200000-0x03ffff	U112 U113
+	# 	0x040000-0x04ffff	U114 U115
+	#
+	# NVRAMs are located at:
+	#	0x060000-0x060fff	CALRAM 	(see nvram() function below)
+	#	0x120000-0x12ffff	DATARAM
+	#
+	# Other undocumented commands: MWRITE, MADDR, JSR & XYZZY
+	#
+	def mread(self, lo, hi):
+		self.AOK()
+		self.wr("TRIG HOLD")
+		self.wr("QFORMAT NUM")
+		# Addresses must be even
+		assert lo & 1 == 0
+		assert hi & 1 == 0
+		l = list()
+		for i in range(lo, hi, 2):
+			j = int(self.ask("MREAD %d" % i))
+			if j < 0:
+				j = 65536 + j
+			l.append(j)
+		self.AOK()
+		return l
 
 	###############################################################
 	# Read a copy of the Calibration NVRAM and write it to a file.
 	#
-	# Unfortunately writing it back is no where near as simple.
+	# The NVRAM containing the calibration data is mapped in the
+	# high byte only, so we need to retrieve 2048 words and discard
+	# the low byte from them.
 	#
+	# If your NVRAM is socketed, pretty much any EPROM programmer
+	# should be able to write the device from the file this function
+	# creates.
+	#
+	# Writing it from software is not easy and involves downloading
+	# M68000 machine code to the instrument for execution.
+	# There are several layers of write-protection involved and
+	# the functions that know how to deal with that magic are
+	# not the same address from one software version to the next.
+	#
+	# If you need to do it really, really, really, badly, send me
+	# an email and I may drop you some hints. /phk
+	#
+
 	def nvram(self,  fname="_.hp3458.calram.bin"):
-		# The NVRAM containing the calibration data is mapped in the
-		$ high byte only.
 		l=self.mread(0x60000, 0x60000 + 2048 * 2)
 		fo = open(fname, "w")
 		for i in l:
-			j = int(i)
-			if j < 0:
-				j = 65536 + j
-			fo.write("%c" % (j >> 8))
+			fo.write("%c" % (i >> 8))
 		fo.close()
 
 if __name__ == "__main__":
