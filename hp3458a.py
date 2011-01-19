@@ -86,6 +86,18 @@ class hp3458a(prologix_usb.gpib_dev):
 	####################
 
 	###############################################################
+	# Undocumented CAL? queries
+	# CAL? -1	21249=NUM_SAMPLES
+	# CAL? -2	861=BURST2
+	# CAL? -3	1149=BURST1
+	# CAL? -4	11=NREADINGS
+	# CAL? -5	2010=SMPL_RATE
+	# CAL? -6	1=SSMP_INC
+	# CAL? -7	3.54147092E-05=PERIOD
+	# CAL 2437	16611, DEFEATS valid 2437
+	# CAL 2941	0, DESTRUCTIVE OVERLOADS valid 2941
+
+	###############################################################
 	# Read a memory range using the undocumented MREAD command
 	# Return as a list of python 'int' [0...65535]
 	#
