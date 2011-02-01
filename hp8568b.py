@@ -13,6 +13,24 @@ class hp8568b(prologix_usb.gpib_dev):
 		if x != "HP8568B":
 			self.fail("HP8568B ID failure (" + x + ")")
 		self.id = x
+		self.errors()
+
+	##############
+	# PYLT methods
+	##############
+
+	def reset(self):
+		d.wr("IP")
+
+	def errors(self, f=sys.stderr):
+		r = False
+		while True:
+			x = self.ask("ERR")
+			if x == "0,0,0,0":
+				break
+			f.write(self.id + ".ERROR: " + x + "\n")
+			r = True
+		return r
 
 	def screen_dump(self, fname="_.hp8568b.eps", format="eps"):
 		print(self.id + " Taking a " + format +
@@ -33,6 +51,25 @@ class hp8568b(prologix_usb.gpib_dev):
 		p.stdin.close()
 		p.wait()
 
+	#################
+	# HP8568B methods
+	#################
+
+	###############################################################
+	# Read screen memory as array of 4096 unsigned shorts
+	# See Appendix A in the manual for layout and meaning of this
+	#
+	def screen_memory(self):
+		import array 
+		x=bytearray()
+		for i in range(0,5):
+			self.wr("O2;DA%d;KS{" % (i * 1001))
+			x.extend(self.rd_bin(2002))
+		assert len(x) == 10010
+		y = array.array("H")
+		for i in range(0,4096):
+			y.append(x[i * 2] * 256 + x[i * 2 + 1])
+		return y
 
 if __name__ == "__main__":
 	d=hp8568b()
