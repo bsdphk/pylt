@@ -65,6 +65,8 @@ class hp8568b(prologix_usb.gpib_dev):
 		for i in range(0,5):
 			self.wr("O2;DA%d;KS{" % (i * 1001))
 			x.extend(self.rd_bin(2002))
+		if len(x) != 10010:
+			print("WRONG LEN %d" % len(x))
 		assert len(x) == 10010
 		y = array.array("H")
 		for i in range(0,4096):
