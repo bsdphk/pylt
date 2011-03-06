@@ -105,9 +105,10 @@ class plotter():
 		if self.x == x and self.y == y:
 			self.x = self.x - .1
 			self.y = self.y - .1
+		# The +.01 is to work around a bug in FireFox (seen in 3.5.16)
 		if draw and self.__up:
-			self.fo.write('<polyline points="%.1f,%.1f' %
-			    (self.x, self.y))
+			self.fo.write('<polyline points="%.2f,%.1f' %
+			    (self.x + .01, self.y))
 			self.__up = False
 		if draw:
 			self.fo.write('\n\t%.1f,%.1f' % (x, y))
@@ -124,6 +125,9 @@ class plotter():
 		self.fo.write("</svg>\n")
 		self.fo.close()
 		self.fo = None
+
+	def report_bbox(self):
+		return(self.x0,self.y0,self.x1,self.y1)
 
 if __name__ == "__main__":
 	p = plotter()
