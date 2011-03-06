@@ -1,7 +1,11 @@
 #!/usr/local/bin/python
 
+# Python Imports
 import sys
+import math
 import time
+
+# Python Imports
 import prologix_usb
 
 class hp5370b(prologix_usb.gpib_dev):
@@ -79,29 +83,45 @@ class hp5370b(prologix_usb.gpib_dev):
 			r.append(self.bintofloat(i))
 		return r
 
+	###############################################################
+	# Use Teach and Learn to set a specific reference value
+	#
+	# The last 7 bytes of the TEach string is the reference value
+	# in HP5370 specific floating point format.
+	# (Details can be found in PyRevEng)
+
+	def set_ref(self, refval):
+		x = self.teach()
+		m,e = math.frexp(refval / 5e-9)
+		if m < 0:
+			s = 0x80
+			m = -m
+		else:
+			s = 0
+		m = math.ldexp(m, -1)
+		for i in range(14,20):
+			m = math.ldexp(m, 8)
+			h = int(m)
+			m -= h
+			x[i] = s | h
+			s = 0
+		
+		e -= 31
+		if e < 0:
+			e += 256
+		x[20] = e
+
+		y=bytearray("LN")
+		for i in x:
+			if i == 10 or i == 27 or i == 13 or i == 43:
+				y.append(27)
+			y.append(i)
+		d.wr(y)
+
 if __name__ == "__main__":
 	d=hp5370b()
 	d.wr("TB0")
 	print("Device has no ID function")
-
-	if False:
-		x = d.teach()
-		print (len(x))
-		print (d.rd())
-		print (d.spoll())
-		print (d.rd())
-		print (d.spoll())
-		print (d.rd())
-		x = d.teach()
-		print (len(x))
-		print (d.rd())
-		print (d.spoll())
-		print (d.rd())
-		print (d.spoll())
-		print (d.rd())
-
-		x = d.read_fast(100)
-		print(len(x))
 
 doc="""
 Function:
