@@ -94,11 +94,14 @@ class prologix_usb(object):
 		self.debug("<%d<" % chr,  x)
 		return (x)
 
-	def rd_bin(self, nbr):
-		self.cmd("++read")
+	def rd_bin(self, nbr, eoi = True):
+		if eoi:
+			self.cmd("++read eoi")
+		else:
+			self.cmd("++read")
 		x = self.ser.read(nbr)
 		x = bytearray(x)
-		self.debug("<%d<" % nbr,  x)
+		self.debug("<%d/%d<" % (nbr, len(x)),  x)
 		return (x)
 
 	def wr(self, str):
@@ -123,6 +126,9 @@ class prologix_usb(object):
 
 	def trigger(self):
 		self.cmd("++trg")
+
+	def clear(self):
+		self.cmd("++clr")
 
 class gpib_dev(pylt.pylt):
 
@@ -179,4 +185,8 @@ class gpib_dev(pylt.pylt):
 	def trigger(self):
 		self.pusb.set(self.setting)
 		return(self.pusb.trigger())
+
+	def clear(self):
+		self.pusb.set(self.setting)
+		self.pusb.clear()
 
