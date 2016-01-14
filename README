@@ -1,20 +1,20 @@
-What ?
+What?
 ======
-This is a set of python classes for communicating with IEEE488/GPIB
+This is a set of Python classes for communicating with IEEE488/GPIB
 instruments which I use in my private lab.
 
 The base class is "pylt" - PYthon LabTools - which defines the generic
 API that hides the particular details of getting HPIB working for
 this instrument.
 
-As a result, a typical python script for measuring something can look
+As a result, a typical Python script for measuring something can look
 almost readable:
 
 	import u2004a
 
 	d = u2004a.u2004a()
 
-	# 1MHz, -25 dBm, best resolution
+	# 1 MHz, -25 dBm, best resolution
 	d.config(1e6, -25, 4)
 
 	while True:
@@ -24,11 +24,11 @@ Currently two hardware connections are supported:  Prologix USB-GPIB
 adapter and direct USBTMC/USB488 connection.
 
 
-Why ?
+Why?
 =====
 
-For those of you who are happy with LabView etc, this will look
-like yet another 1980'ies rerun.   Now that I've said it, you
+For those of you who are happy with LabView, etc., this will look
+like yet another 1980s rerun.   Now that I've said it, you
 don't need to waste email-bandwidth telling anybody that :-)
 
 Yes, I am aware of py-visa and a few other efforts, but I needed
@@ -41,7 +41,7 @@ of what I happened to have on my lab-computer right now, and I will
 update it as time/need/inspiration strikes.
 
 There is a sort of vision behind it which has matured as I went
-along and learned more and more python, and I will try to move
+along and learned more and more Python, and I will try to move
 closer to that as I go.  The best place to spot it is in the
 pylt.py file, where the methods all instruments should support
 are defaulted.
@@ -59,22 +59,22 @@ For instance:
                 def __init__(self, name = "gpib0", adr = 13):
 
 "gpib0" corresponds to /dev/gpib0 (which is where one of my
-Prologix USB-GPIB adapters show up.)  and 13 is the bus address.
+Prologix USB-GPIB adapters show up), and 13 is the bus address.
 
 There is a nifty multiplexing facility built in, so you can
 talk to multiple instruments at a Prologix driven bus at the
-same time from the same python script, without having to
+same time from the same Python script, without having to
 think about it.
 
 
 USBTMC/USB488
 =============
 
-This one caused me no end of pain, what a sucky standard, but
+This one caused me no end of pain. What a sucky standard, but
 at least it looks like the Agilent U2004A Power Sensor works
 reliably now.
 
-You will need py-usb 1.0 and some backend for it, I use libusb.
+You will need py-usb 1.0 and some backend for it; I use libusb.
 
 
 Getting started
@@ -88,13 +88,13 @@ With git installed do:
 	git clone git://github.com/bsdphk/pylt.git
 
 
-Who ?
+Who?
 =====
 
-Written by Poul-Henning Kamp, <phk@FreeBSD.org>
+Written by Poul-Henning Kamp, <phk@FreeBSD.org>.
 
 
-License ?
+License?
 =========
 
 /*
