@@ -9,7 +9,7 @@ import pylt
 
 pusb = dict()
 
-ver = "Prologix GPIB-USB Controller version 6.91"
+ver = "Prologix GPIB-USB Controller version 6.95"
 
 hwset = (
 		"addr",
