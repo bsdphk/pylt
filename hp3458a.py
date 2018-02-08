@@ -1,21 +1,24 @@
 #!/usr/local/bin/python
 
+from __future__ import print_function
+
 import sys
 import time
 import prologix_usb
 
 class hp3458a(prologix_usb.gpib_dev):
 
-	def __init__(self, name = "gpib1", adr = 22):
+	def __init__(self, name = "gpib0", adr = 22):
 		prologix_usb.gpib_dev.__init__(self, name, adr)
 		self.spoll_cmd = 0x10
 		self.spoll_data = 0x80
 		self.attr("read_tmo_ms", 2000)
-		self.attr("rd_mode", 10)
+		self.attr("rd_mode", "eoi")
+		self.wr("END ALWAYS")
 		#self.wr("TRIG HOLD")
-		#self.wr("INBUF ON")
+		self.wr("INBUF ON")
 		self.errors()
-		x = self.ask("ID?")
+		x = self.ask("ID?").strip()
 		if x != "HP3458A":
 			print("HP3458A.ERROR: ID Failure (%s)" % x)
 		assert x == "HP3458A"
@@ -55,6 +58,7 @@ class hp3458a(prologix_usb.gpib_dev):
 		self.wr("ACAL DCV")
 		self.wait_cmd(tmo=200000)
 		self.AOK()
+		self.debug("ACAL DCV actual duration: %.1f" % (time.time() - t))
 		print("ACAL DCV actual duration: %.1f" % (time.time() - t))
 
 	def acal_ac(self):
@@ -156,7 +160,49 @@ class hp3458a(prologix_usb.gpib_dev):
 			fo.write("%c" % (i >> 8))
 		fo.close()
 
+
+def voltlog(d):
+	fo = open("_volt_log.txt", "w")
+	tcal = 3600
+	t0 = time.time()
+	while True:
+		tc = time.time()
+		fo.write("\n")
+		s = "# %.3f %10.3f ACAL DCV" % (tc, tc - t0)
+		print(s)
+		fo.write(s + "\n")
+		d.acal_dcv()
+		t = time.time()
+		a = d.ask("CAL? 72")
+		s = "# %.3f %10.3f CAL? 72 = %s" % (t, t - t0, a)
+		print(s)
+		fo.write(s + "\n")
+		d.wr("NPLC 200")
+		d.wr("NDIG 8")
+		while True:
+			d.wait_data(tmo=10000)
+			a = d.rd()
+			t = time.time()
+			if a != "":
+				s = "%.3f %10.3f %10.3f %s" % (t, t-t0, t-tc, a)
+				print(s)
+				fo.write(s + "\n")
+				fo.flush()
+			if t > tc + tcal:
+				fo.write("\n")
+				break
+
 if __name__ == "__main__":
         d = hp3458a()
         print(d.id)
+	for a in sys.argv[1:]:
+		if a == "-voltlog":
+			voltlog(d)
+		if a == "-sn18":
+			print("TIME", time.time())
+			print("Factory CAL72", d.ask("CAL? 72,0"))
+			print("Actual CAL72", d.ask("CAL? 72,1"))
+			print("Min CAL72", d.ask("CAL? 72,3"))
+			print("Max CAL72", d.ask("CAL? 72,5"))
+			d.acal_dcv()
 
