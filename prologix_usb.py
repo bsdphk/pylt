@@ -122,7 +122,13 @@ class prologix_usb(object):
 			self.ser.timeout = (to + 500) * 1e-3
 
 	def spoll(self):
-		return(int(self.ask("++spoll")))
+		self.cmd("++spoll")
+		while True:
+			a = self.ser.readline()
+			self.debug("<sp<", a)
+			if a.strip().isdigit():
+				break
+		return(int(a))
 
 	def trigger(self):
 		self.cmd("++trg")
