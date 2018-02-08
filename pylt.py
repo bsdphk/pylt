@@ -105,7 +105,7 @@ class pylt(object):
 	# Wait for a bits to turn on in spoll()
 	#
 	def wait_spoll(self, bits, tmo = 10000.):
-		self.debug("WAITING FOR %02x" % bits)
+		self.debug("SPOLL WAITING FOR %02x" % bits)
 		assert bits > 0 or "wait_spoll bits" == "must > 0"
 		assert bits < 256 or "wait_spoll bits" == "must be < 256"
 		obits = 256
